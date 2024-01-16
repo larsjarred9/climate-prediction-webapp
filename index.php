@@ -1,5 +1,15 @@
 <?php
 
+// Check if enough arguments are provided to make prediction
+if ($argc != 3) {
+    echo "Usage: php index.php [temp] [hum]\n";
+    exit(1);
+}
+
+// Assign arguments to variables
+$temp = $argv[1];
+$hum = $argv[2];
+
 // Load Composer components
 require "vendor/autoload.php";
 
@@ -21,4 +31,13 @@ $accuracy = \Phpml\Metric\Accuracy::score($dataset->getTestLabels(), $predicted)
 
 // Print result
 echo "Accuracy: " . $accuracy."\n";
+
+// New input for prediction
+$newInput = [$temp, $hum];
+
+// Predict for the new input
+$newPrediction = $classification->predict([$newInput]);
+
+// Print new prediction
+echo "Prediction for new input: " . $newPrediction[0];
 
