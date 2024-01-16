@@ -1,14 +1,22 @@
 <?php
 
 // Check if enough arguments are provided to make prediction
-if ($argc != 3) {
-    echo "Usage: php index.php [temp] [hum]\n";
+if ($argc != 4) {
+    echo "Usage: php index.php [temp] [hum] [frequency]\n";
+    exit(1);
+}
+
+// if frequency is not a number and not between 25 and 50, exit
+if ($argv[3] < 25 || $argv[3] > 50) {
+    echo "Frequency must be between 25 and 100\n";
     exit(1);
 }
 
 // Assign arguments to variables
 $temp = $argv[1];
 $hum = $argv[2];
+$frequency = $argv[3];
+$predictions = [];
 
 // Load Composer components
 require "vendor/autoload.php";
@@ -35,9 +43,24 @@ echo "Accuracy: " . $accuracy."\n";
 // New input for prediction
 $newInput = [$temp, $hum];
 
-// Predict for the new input
-$newPrediction = $classification->predict([$newInput]);
+// Loop frequency times to get the most likely predictions
+for ($i = 0; $i < $frequency; $i++) {
+    // Get training data again to prevent faulty predictions
+    $classification->train($dataset->getTrainSamples(), $dataset->getTrainLabels());
 
-// Print new prediction
-echo "Prediction for new input: " . $newPrediction[0];
+    // Predict
+    $newPrediction = $classification->predict([$newInput]);
+
+    // Add prediction to the predictions array
+    $predictions[] = $newPrediction[0];
+}
+
+// Count the frequency of each prediction
+$predictionCounts = array_count_values($predictions);
+
+// Determine the most frequent prediction
+$mostFrequentPrediction = array_search(max($predictionCounts), $predictionCounts);
+
+// Print the most common prediction for the input
+echo "Most frequent predictions is: " . $mostFrequentPrediction . "\n";
 
